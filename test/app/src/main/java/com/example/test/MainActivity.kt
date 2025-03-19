@@ -1,6 +1,7 @@
 package com.example.test
 
 import android.os.Bundle
+import android.widget.Toolbar
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -26,6 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
+import androidx.appcompat.app.AppCompatActivity;
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,6 +36,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CalendarApp()
         }
+
     }
 }
 
