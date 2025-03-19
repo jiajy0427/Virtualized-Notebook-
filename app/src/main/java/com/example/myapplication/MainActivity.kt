@@ -16,9 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.compose.NavHost
@@ -39,46 +41,58 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CalendarApp() {
 
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+        state = rememberTopAppBarState()
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
         topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(
-                        "Centered Top App Bar",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.Menu,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+            TopBar(scrollBehavior = scrollBehavior)
+
+//            CenterAlignedTopAppBar(
+//                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    titleContentColor = MaterialTheme.colorScheme.primary,
+//                ),
+//                title = {
+//                    Text(
+//                        "Centered Top App Bar",
+//                        maxLines = 1,
+//                        overflow = TextOverflow.Ellipsis
+//                    )
+//                },
+//                navigationIcon = {
+//                    IconButton(onClick = { /* do something */ }) {
+//                        Icon(
+//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+//                            contentDescription = "Localized description"
+//                        )
+//                    }
+//                },
+//                actions = {
+//                    IconButton(onClick = { /* do something */ }) {
+//                        Icon(
+//                            imageVector = Icons.Filled.Menu,
+//                            contentDescription = "Localized description"
+//                        )
+//                    }
+//                },
+//                scrollBehavior = scrollBehavior,
+//            )
         },
+        bottomBar = {
+
+        },
+        floatingActionButton = {
+
+        }
         ) {
-        innerPadding ->
-        ScrollContent(innerPadding)
+        paddingValues ->
+        Screen(
+            modifier = Modifier.padding(paddingValues)
+        )
     }
 
     val navController = rememberNavController()
@@ -89,6 +103,43 @@ fun CalendarApp() {
             MonthViewScreen(year)
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar(
+    modifier: Modifier = Modifier,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
+    TopAppBar(
+        modifier = modifier,
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.6f),
+        ),
+        title = {
+            Text(
+                text = "Sreach your notes",
+                color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
+                fontSize = 17.sp
+            )
+        },
+        navigationIcon = {
+            Icon(
+                imageVector = Icons.Rounded.Menu,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, /* end = 8.dp */)
+                    .size(27.dp)
+            )
+        }
+    )
+}
+
+@Composable
+fun Screen(modifier: Modifier = Modifier) {
+
 }
 
 @Composable
@@ -106,7 +157,7 @@ fun YearGridScreen(navController: NavHostController) {
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Select a Year", fontSize = 24.sp, modifier = Modifier.padding(16.dp))
+//        Text("Select a Year", fontSize = 24.sp, modifier = Modifier.padding(16.dp))
         LazyVerticalGrid(columns = GridCells.Fixed(4),
             contentPadding = PaddingValues(16.dp)) {
             items(years.size)
