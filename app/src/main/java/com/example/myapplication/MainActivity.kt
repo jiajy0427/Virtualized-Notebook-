@@ -189,35 +189,47 @@ fun Screen(modifier: Modifier = Modifier) {
 
 @Composable
 fun ScreenContent(paddingValues: PaddingValues){
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        contentPadding = PaddingValues(
-            top = paddingValues.calculateTopPadding() + 100.dp
-        )
-    ) {
-//        items(10){
-//            Box(
-//                modifier = Modifier
-//                    .padding(horizontal = 16.dp)
-//                    .height(200.dp)
-//                    .fillMaxWidth()
-//                    .clip(RoundedCornerShape(20.dp))
-//                    .background(MaterialTheme.colorScheme.inversePrimary)
-//            )
-//            Spacer(modifier = Modifier.height(16.dp))
-//        }
-    }
 
-    //     code to show year grid and month view
     val navController = rememberNavController()
-    NavHost(navController, startDestination = "year_grid") {
-        composable("year_grid") { YearGridScreen(navController) }
-        composable("month_view/{year}") { backStackEntry ->
-            val year = backStackEntry.arguments?.getString("year")
-            MonthViewScreen(year)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .padding(top = 0.dp),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        contentPadding = PaddingValues(
+//            top = paddingValues.calculateTopPadding() + 10.dp
+//        )
+    ){
+        NavHost(navController, startDestination = "year_grid") {
+            composable("year_grid") { YearGridScreen(navController) }
+            composable("month_view/{year}") { backStackEntry ->
+                val year = backStackEntry.arguments?.getString("year")
+                MonthViewScreen(year)
+            }
         }
     }
+
+//    LazyColumn(
+//        modifier = Modifier.fillMaxSize(),
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        contentPadding = PaddingValues(
+//            top = paddingValues.calculateTopPadding() + 10.dp
+//        )
+//    ) {
+//        items(1100){
+//        }
+//    }
+
+//    //     code to show year grid and month view
+//    val navController = rememberNavController()
+//    NavHost(navController, startDestination = "year_grid") {
+//        composable("year_grid") { YearGridScreen(navController) }
+//        composable("month_view/{year}") { backStackEntry ->
+//            val year = backStackEntry.arguments?.getString("year")
+//            MonthViewScreen(year)
+//        }
+//    }
 }
 
 @Composable
