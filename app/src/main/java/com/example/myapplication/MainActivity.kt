@@ -3,8 +3,11 @@ package com.example.myapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,7 +23,10 @@ import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.compose.NavHost
@@ -32,6 +38,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            enableEdgeToEdge()
             CalendarApp()
         }
     }
@@ -41,68 +48,70 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CalendarApp() {
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
-        state = rememberTopAppBarState()
-    )
+//    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+//        state = rememberTopAppBarState()
+//    )
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-
-        topBar = {
-            TopBar(scrollBehavior = scrollBehavior)
-
-//            CenterAlignedTopAppBar(
-//                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-//                    titleContentColor = MaterialTheme.colorScheme.primary,
-//                ),
-//                title = {
-//                    Text(
-//                        "Centered Top App Bar",
-//                        maxLines = 1,
-//                        overflow = TextOverflow.Ellipsis
-//                    )
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                            contentDescription = "Localized description"
-//                        )
-//                    }
-//                },
-//                actions = {
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            imageVector = Icons.Filled.Menu,
-//                            contentDescription = "Localized description"
-//                        )
-//                    }
-//                },
-//                scrollBehavior = scrollBehavior,
-//            )
-        },
+    Scaffold /*(
+//        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+//
+//        topBar = {
+//            TopBar(scrollBehavior = scrollBehavior)
+//
+////            CenterAlignedTopAppBar(
+////                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+////                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+////                    titleContentColor = MaterialTheme.colorScheme.primary,
+////                ),
+////                title = {
+////                    Text(
+////                        "Centered Top App Bar",
+////                        maxLines = 1,
+////                        overflow = TextOverflow.Ellipsis
+////                    )
+////                },
+////                navigationIcon = {
+////                    IconButton(onClick = { /* do something */ }) {
+////                        Icon(
+////                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+////                            contentDescription = "Localized description"
+////                        )
+////                    }
+////                },
+////                actions = {
+////                    IconButton(onClick = { /* do something */ }) {
+////                        Icon(
+////                            imageVector = Icons.Filled.Menu,
+////                            contentDescription = "Localized description"
+////                        )
+////                    }
+////                },
+////                scrollBehavior = scrollBehavior,
+////            )
+//        },
         bottomBar = {
 
         },
         floatingActionButton = {
 
         }
-        ) {
+        ) */ {
         paddingValues ->
         Screen(
             modifier = Modifier.padding(paddingValues)
         )
     }
 
-    val navController = rememberNavController()
-    NavHost(navController, startDestination = "year_grid") {
-        composable("year_grid") { YearGridScreen(navController) }
-        composable("month_view/{year}") { backStackEntry ->
-            val year = backStackEntry.arguments?.getString("year")
-            MonthViewScreen(year)
-        }
-    }
+//    val navController = rememberNavController()
+//
+////     code to show year grid and month view
+//    NavHost(navController, startDestination = "year_grid") {
+//        composable("year_grid") { YearGridScreen(navController) }
+//        composable("month_view/{year}") { backStackEntry ->
+//            val year = backStackEntry.arguments?.getString("year")
+//            MonthViewScreen(year)
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -112,12 +121,16 @@ fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior
 ) {
     TopAppBar(
-        modifier = modifier,
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(100.dp)),
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
+//            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.6f)
             containerColor = MaterialTheme.colorScheme.primaryContainer,
-            titleContentColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.6f),
+//            titleContentColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.6f),
         ),
+        windowInsets = WindowInsets(top = 0.dp),
         title = {
             Text(
                 text = "Sreach your notes",
@@ -130,16 +143,81 @@ fun TopBar(
                 imageVector = Icons.Rounded.Menu,
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, /* end = 8.dp */)
+                    .padding(start = 16.dp, end = 8.dp)
                     .size(27.dp)
+            )
+        },
+        actions = {
+            Icon(
+                imageVector = Icons.Rounded.Notifications,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(30.dp)
+            )
+
+            Icon(
+                imageVector = Icons.Rounded.AccountCircle,
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(start = 4.dp, end = 16.dp)
+                    .size(30.dp)
             )
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Screen(modifier: Modifier = Modifier) {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+        state = rememberTopAppBarState()
+    )
+    Scaffold(
+        modifier = modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopBar(scrollBehavior = scrollBehavior)
+        }
+    ) {
+        paddingValues ->
+        ScreenContent(
+            paddingValues = paddingValues
+        )
+    }
+}
 
+@Composable
+fun ScreenContent(paddingValues: PaddingValues){
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(
+            top = paddingValues.calculateTopPadding() + 100.dp
+        )
+    ) {
+//        items(10){
+//            Box(
+//                modifier = Modifier
+//                    .padding(horizontal = 16.dp)
+//                    .height(200.dp)
+//                    .fillMaxWidth()
+//                    .clip(RoundedCornerShape(20.dp))
+//                    .background(MaterialTheme.colorScheme.inversePrimary)
+//            )
+//            Spacer(modifier = Modifier.height(16.dp))
+//        }
+    }
+
+    //     code to show year grid and month view
+    val navController = rememberNavController()
+    NavHost(navController, startDestination = "year_grid") {
+        composable("year_grid") { YearGridScreen(navController) }
+        composable("month_view/{year}") { backStackEntry ->
+            val year = backStackEntry.arguments?.getString("year")
+            MonthViewScreen(year)
+        }
+    }
 }
 
 @Composable
