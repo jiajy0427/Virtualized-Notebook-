@@ -45,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,14 +76,31 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarApp() {
-    val isSplahScreenVisible by remember { mutableStateOf(true) }
-    if (isSplahScreenVisible) {
-        Scaffold{
+    var isSplshScreenVisible by remember { mutableStateOf(true) }
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
+        state = rememberTopAppBarState()
+    )
+        Scaffold(
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                if (!isSplshScreenVisible) {
+                    TopBar(scrollBehavior = scrollBehavior)
+                }
+            }
+        ) {
             paddingValues ->
-            Screen(
-                modifier = Modifier.padding(paddingValues)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
             )
-        }
+            if (isSplshScreenVisible) {
+                SplashScreen {
+                    isSplshScreenVisible = false
+                }
+            } else{
+                ScreenContent(modifier = Modifier.padding(paddingValues))
+            }
     }
 }
 
@@ -170,41 +188,12 @@ fun TopBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Screen(modifier: Modifier = Modifier) {
-    val isSplahScreenVisible by remember { mutableStateOf(true) }
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
-        state = rememberTopAppBarState()
-    )
-    val navController = rememberNavController()
-    val navBackStackEntry = navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry.value?.destination?.route
-
-    if (isSplahScreenVisible) {
-        Scaffold(
-            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                TopBar(scrollBehavior = scrollBehavior)
-            }
-        )
-        {
-                paddingValues ->
-            ScreenContent(
-                paddingValues = paddingValues,
-            )
-        }
-    }
-}
-
-@Composable
-fun SplashScreen(navController: NavHostController) {
+fun SplashScreen(onTimeOut: () -> Unit) {
     // Simulate loading with a delay
     LaunchedEffect(Unit){
         delay(3000)
-        navController.navigate("year_grid"){
-            popUpTo("splash"){inclusive = true}
-        }
+        onTimeOut()
     }
 
     // Splash Screen UI
@@ -228,46 +217,13 @@ fun SplashScreen(navController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScreenContent(paddingValues: PaddingValues){
+fun ScreenContent(modifier: Modifier = Modifier){
     val navController = rememberNavController()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") { SplashScreen(navController) }
-        composable("main") { ScreenContent(paddingValues)}
+    NavHost(navController = navController, startDestination = "year_grid") {
         composable("year_grid") { YearGridScreen(navController) }
         composable("month_view/{year}") { backStackEntry ->
             val year = backStackEntry.arguments?.getString("year")
             MonthViewScreen(year)
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MainFlow(outerNavController: NavHostController){
-    val innerNavController = rememberNavController()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
-    val navBackStackEntry = innerNavController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry.value?.destination?.route
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopBar(scrollBehavior = scrollBehavior)
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = innerNavController,
-            startDestination = "year_grid",
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable("year_grid") {
-                YearGridScreen(navController = rememberNavController())
-            }
-            composable("month_view/{year}") { backStackEntry ->
-                val year = backStackEntry.arguments?.getString("year")
-                MonthViewScreen(year)
-            }
         }
     }
 }
@@ -290,10 +246,10 @@ fun YearGridScreen(navController: NavHostController) {
             lazyGridState.scrollToItem(targetIndex)
         }
     }
-
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top
     ) {
         LazyVerticalGrid(columns = GridCells.Fixed(4),
             state = lazyGridState,
