@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -25,7 +27,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,8 +42,9 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import java.util.Calendar
@@ -69,13 +72,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarApp() {
-    Scaffold{
-        paddingValues ->
-        Screen(
-            modifier = Modifier.padding(paddingValues)
-        )
+    val isSplahScreenVisible by remember { mutableStateOf(true) }
+    if (isSplahScreenVisible) {
+        Scaffold{
+            paddingValues ->
+            Screen(
+                modifier = Modifier.padding(paddingValues)
+            )
+        }
     }
 }
 
@@ -98,7 +105,7 @@ fun TopBar(
             TextField(
                 value = "",
                 onValueChange = { /* update search query */},
-                placeholder = @androidx.compose.runtime.Composable {
+                placeholder = @Composable {
                     Text(
                         text = "Search your notes",
                         color = MaterialTheme.colorScheme.onBackground.copy(0.7f),
@@ -166,20 +173,27 @@ fun TopBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Screen(modifier: Modifier = Modifier) {
+    val isSplahScreenVisible by remember { mutableStateOf(true) }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(
         state = rememberTopAppBarState()
     )
-    Scaffold(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopBar(scrollBehavior = scrollBehavior)
-        }
-    ) {
-        paddingValues ->
-        ScreenContent(
-            paddingValues = paddingValues
+    val navController = rememberNavController()
+    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
+
+    if (isSplahScreenVisible) {
+        Scaffold(
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                TopBar(scrollBehavior = scrollBehavior)
+            }
         )
+        {
+                paddingValues ->
+            ScreenContent(
+                paddingValues = paddingValues,
+            )
+        }
     }
 }
 
@@ -187,7 +201,7 @@ fun Screen(modifier: Modifier = Modifier) {
 fun SplashScreen(navController: NavHostController) {
     // Simulate loading with a delay
     LaunchedEffect(Unit){
-        delay(2000)
+        delay(3000)
         navController.navigate("year_grid"){
             popUpTo("splash"){inclusive = true}
         }
@@ -197,7 +211,10 @@ fun SplashScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Green),
+            .background(Color.Green)
+            .consumeWindowInsets(WindowInsets.systemBars)
+            .padding(WindowInsets.systemBars
+                .asPaddingValues()),
         contentAlignment = Alignment.Center
     ) {
         // Add your splash screen content here
@@ -209,11 +226,14 @@ fun SplashScreen(navController: NavHostController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenContent(paddingValues: PaddingValues){
     val navController = rememberNavController()
-    NavHost(navController, startDestination = "splash") {
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    NavHost(navController = navController, startDestination = "splash") {
         composable("splash") { SplashScreen(navController) }
+        composable("main") { ScreenContent(paddingValues)}
         composable("year_grid") { YearGridScreen(navController) }
         composable("month_view/{year}") { backStackEntry ->
             val year = backStackEntry.arguments?.getString("year")
@@ -222,17 +242,45 @@ fun ScreenContent(paddingValues: PaddingValues){
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainFlow(outerNavController: NavHostController){
+    val innerNavController = rememberNavController()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    val navBackStackEntry = innerNavController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry.value?.destination?.route
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopBar(scrollBehavior = scrollBehavior)
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = innerNavController,
+            startDestination = "year_grid",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("year_grid") {
+                YearGridScreen(navController = rememberNavController())
+            }
+            composable("month_view/{year}") { backStackEntry ->
+                val year = backStackEntry.arguments?.getString("year")
+                MonthViewScreen(year)
+            }
+        }
+    }
+}
+
 @Composable
 fun YearGridScreen(navController: NavHostController) {
-    val startYear = 1900
-    val endYear = 2100
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    var yearsBeofre = 115
-    val yearsAfter = 116
+    var yearsBeofre = 25
+    val yearsAfter = 26
     val years = (currentYear - yearsBeofre..currentYear + yearsAfter).toList()
     val lazyGridState = rememberLazyGridState()
 
-    // Scroll to the current year when the screen is first displayed
+//     Scroll to the current year when the screen is first displayed
     LaunchedEffect(Unit) {
         val currentYearIndex = years.indexOf(currentYear)
         if (currentYearIndex != -1) {
