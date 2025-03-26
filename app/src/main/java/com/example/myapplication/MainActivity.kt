@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -73,6 +74,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarApp() {
@@ -200,7 +202,7 @@ fun SplashScreen(onTimeOut: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Green)
+            .background(Color.White)
             .consumeWindowInsets(WindowInsets.systemBars)
             .padding(WindowInsets.systemBars
                 .asPaddingValues()),
@@ -215,7 +217,6 @@ fun SplashScreen(onTimeOut: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenContent(modifier: Modifier = Modifier){
     val navController = rememberNavController()
@@ -231,9 +232,9 @@ fun ScreenContent(modifier: Modifier = Modifier){
 @Composable
 fun YearGridScreen(navController: NavHostController) {
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    var yearsBeofre = 25
+    var yearsBefore = 25
     val yearsAfter = 26
-    val years = (currentYear - yearsBeofre..currentYear + yearsAfter).toList()
+    val years = (currentYear - yearsBefore..currentYear + yearsAfter).toList()
     val lazyGridState = rememberLazyGridState()
 
 //     Scroll to the current year when the screen is first displayed
@@ -241,7 +242,7 @@ fun YearGridScreen(navController: NavHostController) {
         val currentYearIndex = years.indexOf(currentYear)
         if (currentYearIndex != -1) {
             val visibleItemsCount = 4 * 7
-            val offset = (visibleItemsCount/2) - 1
+            val offset = (visibleItemsCount / 2) - 1
             val targetIndex = maxOf(0, currentYearIndex - offset)
             lazyGridState.scrollToItem(targetIndex)
         }
@@ -251,9 +252,11 @@ fun YearGridScreen(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        LazyVerticalGrid(columns = GridCells.Fixed(4),
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(4),
             state = lazyGridState,
-            contentPadding = PaddingValues(16.dp)) {
+            contentPadding = PaddingValues(16.dp)
+        ) {
             items(years.size)
             { index ->
                 val year = years[index]
@@ -289,13 +292,75 @@ fun YearItem(year: Int, isPastYear: Boolean, onClick: () -> Unit) {
     }
 }
 
+fun getMonthState(currentYear: Int, currentMonth: Int, year: Int, month: Int): String {
+    return when {
+        year < currentYear -> "past"
+        year == currentYear && month < currentMonth -> "past"
+        year == currentYear && month == currentMonth -> "current"
+        else -> "future"
+    }
+}
+
 @Composable
-fun MonthViewScreen(year: String?) {
+fun MonthViewScreen(year: String?): String? {
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+    val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+    val months = listOf(
+        "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+    )
+    val lazyGridState = rememberLazyGridState()
+    val year = year
+
+    LaunchedEffect(Unit) {
+        val currentMonthIndex = currentMonth - 1
+        if (currentMonthIndex != -1) {
+            val visibleItemsCount = 3 * 4
+            val offset = (visibleItemsCount/2) - 1
+            val targetIndex = maxOf(0, currentMonthIndex - offset)
+            lazyGridState.scrollToItem(targetIndex)
+        }
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Month View for Year: $year", fontSize = 24.sp)
+        LazyVerticalGrid(columns = GridCells.Fixed(3),
+            state = lazyGridState,
+            contentPadding = PaddingValues(16.dp)) {
+            items(months.size) { index ->
+                val month = index + 1
+                val state = getMonthState(currentYear, currentMonth, year!!.toInt(), month)
+                val backgroundColor = when(state) {
+                    "past" -> Color.Black
+                    "current" -> Color.Black
+                    "future" -> Color.LightGray
+                    else -> Color.Transparent
+                }
+                MonthItem(
+                    month = months[index],
+                    backgroundColor = backgroundColor
+                )
+            }
+        }
+    }
+    return year
+}
+
+@Composable
+fun MonthItem(month: String, backgroundColor: Color) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier
+            .padding(8.dp)
+            .size(80.dp),
+    ){
+        Box(contentAlignment = Alignment.Center, modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)) {
+            Text(
+                text = month, fontSize = 16.sp,
+                color = if(backgroundColor == Color.Black) Color.White else Color.Black
+            )}
     }
 }
